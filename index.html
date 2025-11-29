@@ -2,630 +2,144 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Mini Farewell Adventure</title>
+  <title>You’re Not Walking Alone</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <style>
-    :root {
-      --bg: #050816;
-      --card: rgba(17, 25, 40, 0.92);
-      --accent: #ff6bcb;
-      --accent2: #4fd1c5;
-      --text-main: #f9fafb;
-      --text-muted: #9ca3af;
-      --btn-bg: #111827;
-      --btn-hover: #1f2937;
-      --shadow-soft: 0 20px 40px rgba(0, 0, 0, 0.45);
-      --radius-xl: 24px;
-      --trans-fast: 0.18s ease-out;
-    }
-
-    * {
-      box-sizing: border-box;
+    html, body {
       margin: 0;
       padding: 0;
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, "SF Pro Text",
-        "Inter", sans-serif;
+      height: 100%;
+      overflow: hidden;
+      font-family: Arial, sans-serif;
+      background: #000;
     }
 
-    body {
-      min-height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      background: radial-gradient(circle at top, #1d2440, #020617 55%);
-      color: var(--text-main);
-      padding: 16px;
+    /* VIDEO BACKGROUND */
+    #bg-video {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      z-index: -2;
+      border: none;
+      object-fit: cover;
     }
 
-    .glow {
+    /* Dark overlay to make text readable */
+    .overlay {
       position: fixed;
       inset: 0;
-      pointer-events: none;
-      background:
-        radial-gradient(circle at 10% 20%, rgba(155, 135, 245, 0.18), transparent 55%),
-        radial-gradient(circle at 90% 80%, rgba(74, 222, 128, 0.18), transparent 55%);
-      filter: blur(1px);
-      opacity: 0.8;
+      background: rgba(0, 0, 0, 0.35);
       z-index: -1;
     }
 
-    .card {
-      width: 100%;
-      max-width: 520px;
-      background: var(--card);
-      border-radius: var(--radius-xl);
-      padding: 22px 20px 20px;
-      box-shadow: var(--shadow-soft);
-      border: 1px solid rgba(148, 163, 184, 0.18);
-      backdrop-filter: blur(18px);
-      position: relative;
-      overflow: hidden;
-    }
-
-    .card::before {
-      content: "";
+    /* Welcome overlay */
+    .welcome-overlay {
       position: absolute;
-      inset: -80px;
-      background:
-        radial-gradient(circle at 0 0, rgba(244, 114, 182, 0.16), transparent 60%),
-        radial-gradient(circle at 100% 0, rgba(56, 189, 248, 0.12), transparent 60%);
-      opacity: 0.8;
-      mix-blend-mode: screen;
-      z-index: -1;
-    }
-
-    .badge {
-      display: inline-flex;
+      inset: 0;
+      z-index: 10;
+      display: flex;
       align-items: center;
-      gap: 6px;
-      padding: 4px 10px;
-      font-size: 11px;
-      text-transform: uppercase;
-      letter-spacing: 0.12em;
-      background: rgba(15, 23, 42, 0.95);
-      border-radius: 999px;
-      border: 1px solid rgba(148, 163, 184, 0.35);
-      color: var(--text-muted);
-      margin-bottom: 10px;
+      justify-content: center;
+      backdrop-filter: blur(4px);
+      transition: opacity 0.8s ease, transform 0.8s ease;
     }
 
-    .badge-dot {
-      width: 7px;
-      height: 7px;
-      border-radius: 999px;
-      background: radial-gradient(circle, #22c55e, #16a34a);
-      box-shadow: 0 0 10px rgba(34, 197, 94, 0.7);
+    .welcome-overlay.hidden {
+      opacity: 0;
+      pointer-events: none;
+      transform: translateY(10px);
     }
 
-    .title {
+    .welcome-card {
+      max-width: 460px;
+      width: calc(100% - 40px);
+      background: rgba(6, 18, 11, 0.9);
+      border-radius: 18px;
+      padding: 18px 20px;
+      border: 1px solid rgba(170, 240, 190, 0.7);
+      box-shadow: 0 20px 38px rgba(0, 0, 0, 0.85);
+      color: #eafcf1;
+    }
+
+    .welcome-title {
       font-size: 22px;
-      line-height: 1.2;
-      margin-bottom: 4px;
+      margin-bottom: 6px;
     }
 
-    .subtitle {
+    .welcome-subtitle {
       font-size: 13px;
-      color: var(--text-muted);
-      margin-bottom: 16px;
+      margin-bottom: 10px;
+      color: #c6f5d5;
     }
 
-    .question {
-      font-size: 16px;
-      line-height: 1.5;
-      margin-bottom: 12px;
+    .welcome-intro {
+      font-size: 13px;
+      line-height: 1.6;
+      margin-bottom: 14px;
+      color: #e7fff1;
+      white-space: pre-line;
     }
 
-    .helper {
-      font-size: 12px;
-      color: var(--text-muted);
-      margin-bottom: 16px;
-    }
-
-    .choices {
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-      margin-bottom: 16px;
-    }
-
-    button.choice {
-      width: 100%;
-      text-align: left;
-      background: var(--btn-bg);
-      border-radius: 999px;
-      border: 1px solid rgba(148, 163, 184, 0.55);
-      padding: 10px 14px;
-      font-size: 14px;
-      color: var(--text-main);
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      cursor: pointer;
-      transition: background var(--trans-fast), transform var(--trans-fast),
-        border-color var(--trans-fast), box-shadow var(--trans-fast);
-    }
-
-    button.choice span.key {
-      width: 22px;
-      height: 22px;
-      border-radius: 999px;
-      background: linear-gradient(135deg, var(--accent), var(--accent2));
+    .start-btn {
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      font-size: 12px;
-      color: #0b1020;
-      font-weight: 600;
-      flex-shrink: 0;
-    }
-
-    button.choice span.label {
-      flex: 1;
-    }
-
-    button.choice:hover {
-      background: var(--btn-hover);
-      transform: translateY(-1px);
-      border-color: rgba(248, 250, 252, 0.85);
-      box-shadow: 0 10px 25px rgba(15, 23, 42, 0.7);
-    }
-
-    button.choice:active {
-      transform: translateY(0px) scale(0.99);
-      box-shadow: 0 5px 15px rgba(15, 23, 42, 0.8);
-    }
-
-    .input-wrapper {
-      margin-bottom: 16px;
-    }
-
-    .input-label {
-      font-size: 12px;
-      color: var(--text-muted);
-      margin-bottom: 6px;
-      display: block;
-    }
-
-    textarea {
-      width: 100%;
-      min-height: 70px;
-      border-radius: 14px;
-      border: 1px solid rgba(148, 163, 184, 0.7);
-      background: rgba(15, 23, 42, 0.9);
-      color: var(--text-main);
-      padding: 9px 11px;
-      resize: vertical;
-      font-size: 13px;
-      line-height: 1.4;
-      outline: none;
-      transition: border-color var(--trans-fast), box-shadow var(--trans-fast),
-        background var(--trans-fast), transform var(--trans-fast);
-    }
-
-    textarea:focus {
-      border-color: var(--accent2);
-      box-shadow: 0 0 0 1px rgba(45, 212, 191, 0.5);
-      transform: translateY(-0.5px);
-      background: rgba(15, 23, 42, 0.98);
-    }
-
-    .primary-btn {
-      width: 100%;
+      padding: 8px 18px;
       border-radius: 999px;
       border: none;
-      padding: 10px 16px;
-      font-size: 14px;
+      background: #38c172;
+      color: #04130b;
       font-weight: 600;
+      font-size: 13px;
       cursor: pointer;
-      background: linear-gradient(135deg, var(--accent), var(--accent2));
-      color: #020617;
-      box-shadow: 0 12px 28px rgba(236, 72, 153, 0.4);
-      transition: transform var(--trans-fast), box-shadow var(--trans-fast),
-        filter var(--trans-fast);
-      margin-bottom: 10px;
+      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.45);
     }
 
-    .primary-btn:hover {
-      transform: translateY(-1px);
-      box-shadow: 0 16px 35px rgba(59, 130, 246, 0.55);
-      filter: brightness(1.05);
-    }
-
-    .primary-btn:active {
-      transform: translateY(0) scale(0.99);
-      box-shadow: 0 8px 18px rgba(15, 23, 42, 0.85);
-    }
-
-    .progress {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-top: 6px;
-      font-size: 11px;
-      color: var(--text-muted);
-      opacity: 0.9;
-    }
-
-    .pill {
-      padding: 3px 9px;
-      border-radius: 999px;
-      border: 1px solid rgba(148, 163, 184, 0.5);
-      font-size: 10px;
-      text-transform: uppercase;
-      letter-spacing: 0.11em;
-    }
-
-    .answers-box {
-      margin-top: 10px;
-      font-size: 11px;
-      color: var(--text-muted);
-      max-height: 90px;
-      overflow: auto;
-      padding-top: 6px;
-      border-top: 1px dashed rgba(148, 163, 184, 0.4);
-    }
-
-    .answers-box strong {
-      color: #e5e7eb;
-    }
-
-    @media (max-width: 400px) {
-      .title {
-        font-size: 20px;
-      }
-      .subtitle {
-        font-size: 12px;
-      }
-      .card {
-        padding: 18px 16px 16px;
-      }
+    .start-btn:active {
+      transform: translateY(1px);
     }
   </style>
 </head>
 <body>
-  <div class="glow"></div>
 
-  <div class="card">
-    <div class="badge">
-      <span class="badge-dot"></span>
-      Farewell side quest
+  <!-- YouTube Background -->
+  <iframe
+    id="bg-video"
+    src="https://www.youtube.com/embed/ynLpZGegiJE?autoplay=1&mute=1&controls=0&loop=1&playlist=ynLpZGegiJE&playsinline=1&showinfo=0&modestbranding=1"
+    allow="autoplay; encrypted-media"
+  ></iframe>
+
+  <div class="overlay"></div>
+
+  <!-- Welcome Screen -->
+  <div class="welcome-overlay" id="welcome-overlay">
+    <div class="welcome-card">
+      <div class="welcome-title">You’re Not Walking Alone</div>
+      <div class="welcome-subtitle">
+        A small forest made just for you. To remind you that even far away… you’re never facing things alone.
+      </div>
+      <div class="welcome-intro">
+The world is changing around you.
+New streets, new people, new days ahead.
+But this little forest walks with you—
+so no matter how far you go,
+you’re not walking alone.
+      </div>
+      <button class="start-btn" id="start-walking-btn">Start walking →</button>
     </div>
-    <div class="title">Mini Adventure Game</div>
-    <div class="subtitle">
-      Little story game made just for you. Take 2–5 minutes and play it in your head.
-    </div>
-
-    <div id="question" class="question"></div>
-    <div id="helper" class="helper"></div>
-
-    <div id="choices" class="choices"></div>
-
-    <div id="inputArea" class="input-wrapper" style="display:none;">
-      <label for="answer" class="input-label" id="inputLabel"></label>
-      <textarea id="answer" placeholder="Type your answer here..."></textarea>
-    </div>
-
-    <button id="nextBtn" class="primary-btn" style="display:none;"></button>
-
-    <div class="progress">
-      <div id="stepLabel">Step 1</div>
-      <div class="pill" id="pathLabel">Choose your door</div>
-    </div>
-
-    <div id="answersBox" class="answers-box" style="display:none;"></div>
   </div>
 
   <script>
-    // Simple state machine for the story
-    const answers = [];
+    const btn = document.getElementById('start-walking-btn');
+    const overlay = document.getElementById('welcome-overlay');
 
-    const nodes = {
-      start: {
-        step: "Step 1",
-        path: "Choose your door",
-        question:
-          "You’re in a glowing hallway with three magical doors. Each one leads to a mini story.",
-        helper: "Tap the door that feels most like your mood right now.",
-        choices: [
-          {
-            key: "1",
-            label: "Red Door – The Memory Room",
-            next: "red_memory_1",
-          },
-          {
-            key: "2",
-            label: "Blue Door – The Future Room",
-            next: "blue_future_1",
-          },
-          {
-            key: "3",
-            label: "Green Door – The Mystery Room",
-            next: "green_mystery_1",
-          },
-        ],
-      },
-
-      // RED PATH
-      red_memory_1: {
-        step: "Step 2",
-        path: "Memory Room",
-        question:
-          "You step into the Red Door. A floating book opens to a page titled: “Your favorite moment with your friend.”",
-        helper: "What’s the first memory that pops into your mind?",
-        input: {
-          label: "Write about that memory in a few words:",
-        },
-        next: "red_memory_portals",
-        tag: "Favorite moment",
-      },
-      red_memory_portals: {
-        step: "Step 3",
-        path: "Choose a portal",
-        question:
-          "Behind the book, two glowing portals appear. Each one wants a different answer.",
-        helper: "Pick the one that matches what you want to feel right now.",
-        choices: [
-          { key: "A", label: "Portal of Gratitude", next: "gratitude_q" },
-          { key: "B", label: "Portal of Laughter", next: "laughter_q" },
-        ],
-      },
-
-      // BLUE PATH
-      blue_future_1: {
-        step: "Step 2",
-        path: "Future Room",
-        question:
-          "You walk through the Blue Door. Your future self appears, smiling at you.",
-        helper:
-          "They lean in and whisper one message they really want you to remember today.",
-        input: {
-          label: "What do they say to you?",
-        },
-        next: "blue_future_switches",
-        tag: "Message from future self",
-      },
-      blue_future_switches: {
-        step: "Step 3",
-        path: "Pick a switch",
-        question:
-          "A panel opens with two switches glowing softly. You can only flip one.",
-        helper: "Which power do you want for the rest of today?",
-        choices: [
-          { key: "A", label: "Calmness", next: "calm_q" },
-          { key: "B", label: "Confidence", next: "confidence_q" },
-        ],
-      },
-
-      // GREEN PATH
-      green_mystery_1: {
-        step: "Step 2",
-        path: "Mystery Room",
-        question:
-          "You step through the Green Door. In the center of the room, there’s a locked box.",
-        helper:
-          "A note on it says: “The thing you are taking with you today (not an item).”",
-        input: {
-          label: "What do you think is inside the box?",
-        },
-        next: "green_mystery_riddles",
-        tag: "What you’re taking with you",
-      },
-      green_mystery_riddles: {
-        step: "Step 3",
-        path: "Choose a riddle",
-        question:
-          "A shadow appears and offers you two riddles to unlock the box.",
-        helper: "Pick the riddle that sounds more fun.",
-        choices: [
-          { key: "A", label: "Travel Riddle", next: "travel_q" },
-          { key: "B", label: "Courage Riddle", next: "courage_q" },
-        ],
-      },
-
-      // Shared follow-up nodes
-      gratitude_q: {
-        step: "Step 4",
-        path: "Gratitude portal",
-        question: "Portal of Gratitude: something small made your week better.",
-        helper:
-          "It can be a person, a message, a song, a snack… anything tiny that mattered.",
-        input: {
-          label: "What was that small thing?",
-        },
-        next: "final_intro",
-        tag: "Grateful for",
-      },
-      laughter_q: {
-        step: "Step 4",
-        path: "Laughter portal",
-        question:
-          "Portal of Laughter: it wants your funniest recent moment as payment.",
-        helper: "Something that made you actually laugh, even a little.",
-        input: {
-          label: "What made you laugh recently?",
-        },
-        next: "final_intro",
-        tag: "Last big laugh",
-      },
-      calm_q: {
-        step: "Step 4",
-        path: "Calmness switch",
-        question:
-          "You flip the Calmness switch. The noise around you fades a bit.",
-        helper:
-          "There are things that always calm you more than others, even if it’s simple.",
-        input: {
-          label: "What’s something that instantly relaxes you?",
-        },
-        next: "final_intro",
-        tag: "Brings calm",
-      },
-      confidence_q: {
-        step: "Step 4",
-        path: "Confidence switch",
-        question:
-          "You flip the Confidence switch. You suddenly remember you’ve done hard things before.",
-        helper:
-          "The game wants proof you’ve already survived and achieved things.",
-        input: {
-          label: "What’s something you’re proud of recently?",
-        },
-        next: "final_intro",
-        tag: "Proud of",
-      },
-      travel_q: {
-        step: "Step 4",
-        path: "Travel riddle",
-        question:
-          "The Travel Riddle asks: “Your feet aren’t there yet, but your mind is.”",
-        helper:
-          "Basically: where do you keep daydreaming about going next?",
-        input: {
-          label: "What’s the next place you dream of seeing?",
-        },
-        next: "final_intro",
-        tag: "Dream destination",
-      },
-      courage_q: {
-        step: "Step 4",
-        path: "Courage riddle",
-        question:
-          "The Courage Riddle smiles: “You were braver than you think, even if nobody saw it.”",
-        helper: "It doesn’t have to be huge. Just something that took courage.",
-        input: {
-          label: "What’s something brave you did lately?",
-        },
-        next: "final_intro",
-        tag: "Recent courage",
-      },
-
-      // Final node
-      final_intro: {
-        step: "Final step",
-        path: "Final choice",
-        question:
-          "Before you leave the hallway, the game gives you three little choices.",
-        helper:
-          "You don’t have to explain them here if you don’t want to. Just answer for yourself or write it down.",
-        input: {
-          label:
-            "Pick one from each pair and (if you like) type your choices:\n\n" +
-            "• Replay: your happiest day OR a random forgotten day\n" +
-            "• Keep forever: a happy memory OR a lesson that changed you\n" +
-            "• Teleport: a place you loved OR a place you’ve never been",
-        },
-        next: "the_end",
-        tag: "Final choices",
-      },
-
-      the_end: {
-        step: "Done",
-        path: "Side quest complete",
-        question:
-          "Side quest complete. You leave the hallway with a few answers only you fully understand.",
-        helper:
-          "You can close this now, or scroll up and reread what you wrote when you want a tiny reminder of who you are.",
-        choices: [],
-      },
-    };
-
-    const questionEl = document.getElementById("question");
-    const helperEl = document.getElementById("helper");
-    const choicesEl = document.getElementById("choices");
-    const inputArea = document.getElementById("inputArea");
-    const inputLabel = document.getElementById("inputLabel");
-    const answerEl = document.getElementById("answer");
-    const nextBtn = document.getElementById("nextBtn");
-    const stepLabel = document.getElementById("stepLabel");
-    const pathLabel = document.getElementById("pathLabel");
-    const answersBox = document.getElementById("answersBox");
-
-    let currentNodeKey = "start";
-
-    function renderNode(key) {
-      const node = nodes[key];
-      currentNodeKey = key;
-
-      questionEl.textContent = node.question;
-      helperEl.textContent = node.helper || "";
-      stepLabel.textContent = node.step || "";
-      pathLabel.textContent = node.path || "";
-      choicesEl.innerHTML = "";
-
-      // Choices (buttons)
-      if (node.choices && node.choices.length > 0) {
-        node.choices.forEach((choice) => {
-          const btn = document.createElement("button");
-          btn.className = "choice";
-          btn.innerHTML = `
-            <span class="key">${choice.key}</span>
-            <span class="label">${choice.label}</span>
-          `;
-          btn.addEventListener("click", () => {
-            if (node.tag) {
-              // If this node had input previously store it (already stored in handleNext)
-            }
-            goToNode(choice.next);
-          });
-          choicesEl.appendChild(btn);
-        });
-      }
-
-      // Input
-      if (node.input) {
-        inputArea.style.display = "block";
-        inputLabel.textContent = node.input.label;
-        answerEl.value = "";
-        nextBtn.style.display = "inline-block";
-        nextBtn.textContent = key === "final_intro" ? "Finish game" : "Continue";
-        nextBtn.onclick = handleNext;
-      } else {
-        inputArea.style.display = "none";
-        nextBtn.style.display = "none";
-      }
-
-      // Show answers summary if any
-      if (answers.length > 0) {
-        answersBox.style.display = "block";
-        answersBox.innerHTML =
-          "<strong>Your answers so far:</strong><br>" +
-          answers
-            .map(
-              (a) =>
-                `<strong>${a.tag}:</strong> ${a.text
-                  .replace(/\n/g, " / ")
-                  .trim()}`
-            )
-            .join("<br>");
-      } else {
-        answersBox.style.display = "none";
-      }
+    if (btn && overlay) {
+      btn.addEventListener('click', () => {
+        overlay.classList.add('hidden');
+      });
     }
-
-    function handleNext() {
-      const node = nodes[currentNodeKey];
-      if (!node.input) return;
-
-      const value = answerEl.value.trim();
-      if (!value) {
-        answerEl.focus();
-        return;
-      }
-
-      if (node.tag) {
-        answers.push({ tag: node.tag, text: value });
-      }
-
-      goToNode(node.next);
-    }
-
-    function goToNode(nextKey) {
-      renderNode(nextKey);
-    }
-
-    // Start the game
-    renderNode("start");
   </script>
 </body>
 </html>
-
